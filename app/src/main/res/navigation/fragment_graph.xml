@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragment_graph"
+    app:startDestination="@id/lyMemories">
+
+    <fragment
+        android:id="@+id/lyMemories"
+        android:name="com.example.mydiary.LyMemories"
+        android:label="fragment_ly_memories"
+        tools:layout="@layout/fragment_ly_memories" >
+        <action
+            android:id="@+id/action_lyMemories_to_lyMoment"
+            app:destination="@id/lyMoment" />
+    </fragment>
+    <fragment
+        android:id="@+id/lyMoment"
+        android:name="com.example.mydiary.LyMoment"
+        android:label="fragment_ly_moment"
+        tools:layout="@layout/fragment_ly_moment" >
+        <argument
+            android:name="InsertOrShow"
+            app:argType="boolean" />
+        <argument
+            android:name="Id"
+            app:argType="integer" />
+    </fragment>
+</navigation>
