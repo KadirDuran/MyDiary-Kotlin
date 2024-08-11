@@ -62,7 +62,9 @@ dependencies {
     annotationProcessor("androidx.room:room-compiler:$room_version")
 
     // To use Kotlin Symbol Processing (KSP)
-    ksp("androidx.room:room-compiler:$room_version")
-    implementation("androidx.room:room-rxjava2:$room_version")
+    ksp("androidx.room:room-compiler:3.0.2")
+    implementation("androidx.room:room-rxjava2:3.0.2")
+    implementation("io.reactivex.rxjava3:rxjava:3.0.2")
     implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
+
 }

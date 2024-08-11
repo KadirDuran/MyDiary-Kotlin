@@ -1,11 +1,11 @@
-package com.example.mydiary
+package com.example.mydiary.view
 
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
-import android.media.Image
+import android.graphics.Path.Direction
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -15,16 +15,25 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.mydiary.databinding.FragmentLyMemoriesBinding
+import androidx.navigation.Navigation
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.example.mydiary.databinding.FragmentLyMomentBinding
+import com.example.mydiary.model.Moment
+import com.example.mydiary.roomdb.MomentDAO
+import com.example.mydiary.roomdb.MomentDb
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.selects.select
+import java.io.ByteArrayOutputStream
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+
 
 class LyMoment : Fragment() {
     private var _binding: FragmentLyMomentBinding? = null
@@ -34,10 +43,15 @@ class LyMoment : Fragment() {
     private var  selectImg: Uri?=null //URL
     private var  selectBitmap: Bitmap?=null
 
+    private  val  mDisposable= CompositeDisposable()
+    private  lateinit var db : MomentDb
+    private  lateinit var momentDAO: MomentDAO
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         registerLauncher()
+        db = Room.databaseBuilder(requireContext(),MomentDb::class.java,"Moment").build()
+        momentDAO = db.MomentDAO()
     }
 
     override fun onCreateView(
@@ -146,7 +160,7 @@ class LyMoment : Fragment() {
         {
           if(it)
             {
-              val intent = Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                val intent = Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                 activityResultLauncher.launch(intent)
             }else
           {
@@ -157,11 +171,54 @@ class LyMoment : Fragment() {
     }
     fun Save(view: View)
     {
+        val title = binding.txtTitle.text.toString()
+        val moment = binding.txtMoment.text.toString()
+        if(selectBitmap != null)
+        {
+            val smallBitmap = SmallBitmapCreate(selectBitmap!!,300)
+            val outputStream = ByteArrayOutputStream()
+            smallBitmap.compress(Bitmap.CompressFormat.PNG,50,outputStream)
+            val byteArray = outputStream.toByteArray()
+            val moment = Moment(title, moment,byteArray)
+            //Rxjava
+            mDisposable.add(
+                momentDAO.insert(moment)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(this::HandleResponse))
+        }
+    }
 
+    private fun HandleResponse()
+    {
+        val action = LyMomentDirections.actionLyMomentToLyMemories()
+        Navigation.findNavController(requireView()).navigate(action)
     }
     fun Delete(view: View)
     {
 
+    }
+
+    private fun SmallBitmapCreate(img : Bitmap,maxSize : Int) : Bitmap
+    {
+        var width = img.width
+        var height  = img.height
+        val bitmapRate : Double=width.toDouble()/ height.toDouble()
+
+        if(bitmapRate>1)
+        {//Yatay
+            width = maxSize
+            val minH=width/bitmapRate
+            height = minH.toInt()
+
+        }else
+        {
+            height = maxSize
+            val minW=height*bitmapRate
+            width = minW.toInt()
+        }
+
+        return  Bitmap.createScaledBitmap(img,width,height,true)
     }
     fun ViewControl(value : Boolean, id:Int) //false - Show
     {

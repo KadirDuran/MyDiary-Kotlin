@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/lyMemories"
-        android:name="com.example.mydiary.LyMemories"
+        android:name="com.example.mydiary.view.LyMemories"
         android:label="fragment_ly_memories"
         tools:layout="@layout/fragment_ly_memories" >
         <action
@@ -16,7 +16,7 @@
     </fragment>
     <fragment
         android:id="@+id/lyMoment"
-        android:name="com.example.mydiary.LyMoment"
+        android:name="com.example.mydiary.view.LyMoment"
         android:label="fragment_ly_moment"
         tools:layout="@layout/fragment_ly_moment" >
         <argument
@@ -25,5 +25,8 @@
         <argument
             android:name="Id"
             app:argType="integer" />
+        <action
+            android:id="@+id/action_lyMoment_to_lyMemories"
+            app:destination="@id/lyMemories" />
     </fragment>
 </navigation>
