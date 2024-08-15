@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.graphics.Path.Direction
 import android.net.Uri
@@ -23,6 +24,7 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.Navigation
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.mydiary.adapter.MomentAdapter
 import com.example.mydiary.databinding.FragmentLyMomentBinding
 import com.example.mydiary.model.Moment
 import com.example.mydiary.roomdb.MomentDAO
@@ -42,10 +44,11 @@ class LyMoment : Fragment() {
     private  lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
     private var  selectImg: Uri?=null //URL
     private var  selectBitmap: Bitmap?=null
-
+    private var dataMoment : Moment?=null
     private  val  mDisposable= CompositeDisposable()
     private  lateinit var db : MomentDb
     private  lateinit var momentDAO: MomentDAO
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,19 +68,20 @@ class LyMoment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        mDisposable.clear()
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        binding.imgMoment.setOnClickListener { SelectImage(it) }
+        binding.btnSave.setOnClickListener{ Save(it) }
+        binding.btnDelete.setOnClickListener{ Delete(it) }
         arguments?.let {
             ViewControl(LyMomentArgs.fromBundle(it).InsertOrShow,LyMomentArgs.fromBundle(it).Id);
         }
 
 
 
-        binding.imgMoment.setOnClickListener { SelectImage(it) }
-        binding.btnSave.setOnClickListener{ Save(it) }
-        binding.btnDelete.setOnClickListener{ Delete(it) }
+
 
     }
     fun SelectImage(view: View)
@@ -196,6 +200,15 @@ class LyMoment : Fragment() {
     }
     fun Delete(view: View)
     {
+        if(dataMoment!=null)
+        {
+            mDisposable.add(
+                momentDAO.delete(dataMoment!!)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(this::HandleResponse))
+        }
+
 
     }
 
@@ -222,9 +235,28 @@ class LyMoment : Fragment() {
     }
     fun ViewControl(value : Boolean, id:Int) //false - Show
     {
-        if(value) ButtonState(false)
-        else ButtonState(true)
+        if(value)
+        {//Ekleme işlemi
+            ButtonState(false)
+        }
+        else {
+            mDisposable.add(
+                momentDAO.getOneMoment(id)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(this::handleResponse)
+            )
+            ButtonState(true)
+        }
 
+    }
+    private fun handleResponse(moment: Moment)
+    {
+        dataMoment=moment
+        binding.txtMoment.setText(moment.momenttxt)
+        binding.txtTitle.setText(moment.title)
+        val bitmap = BitmapFactory.decodeByteArray(moment.image,0,moment.image.size)
+        binding.imgMoment.setImageBitmap(bitmap)
     }
     fun ButtonState(value : Boolean)
     {

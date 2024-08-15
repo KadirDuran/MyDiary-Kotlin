@@ -1,10 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
-    id ("kotlin-kapt") //.ds
-    id ("androidx.navigation.safeargs.kotlin") //.ds
-    id ("com.google.devtools.ksp") //.ds
-
+    id("kotlin-kapt")
+    id("androidx.navigation.safeargs.kotlin")
+    id("com.google.devtools.ksp") // Eğer KSP kullanacaksanız, annotationProcessor'ı kaldırın
 }
 
 android {
@@ -42,7 +41,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -51,20 +49,17 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
     val nav_version = "2.7.7"
     // Kotlin
     implementation("androidx.navigation:navigation-fragment-ktx:$nav_version")
     implementation("androidx.navigation:navigation-ui-ktx:$nav_version")
 
     val room_version = "2.6.1"
-
     implementation("androidx.room:room-runtime:$room_version")
-    annotationProcessor("androidx.room:room-compiler:$room_version")
+    kapt("androidx.room:room-compiler:$room_version")
 
-    // To use Kotlin Symbol Processing (KSP)
-    ksp("androidx.room:room-compiler:3.0.2")
-    implementation("androidx.room:room-rxjava2:3.0.2")
+    implementation("androidx.room:room-rxjava3:$room_version") 
     implementation("io.reactivex.rxjava3:rxjava:3.0.2")
     implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
-
 }
